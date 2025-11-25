@@ -1,12 +1,22 @@
-﻿const API_BASE = "http://127.0.0.1:8000"; // your FastAPI backend
+﻿// src/lib/api.ts
 
-export async function fetchPlazaResults(plaza: string, payload: any) {
-  const res = await fetch(`${API_BASE}/${plaza}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) throw new Error("Request failed");
-  return res.json();
+const BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
+
+export const API = (path: string) => {
+  if (!path.startsWith('/')) path = `/${path}`
+  return `${BASE_URL}${path}`
+}
+
+export async function json<T>(res: Response): Promise<T> {
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(
+      `Request failed ${res.status} ${res.statusText}${
+        text ? ` - ${text}` : ''
+      }`,
+    )
+  }
+  return (await res.json()) as T
 }
 
