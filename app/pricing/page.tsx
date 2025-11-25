@@ -50,7 +50,8 @@ export default function PricingPage() {
                 CHF 14<span className="text-sm text-slate-300"> / month</span>
               </p>
               <p className="text-xs text-slate-200">
-                For TikTok / IG creators who want daily AI-curated outfits and affiliate-ready fits.
+                For TikTok / IG creators who want daily AI-curated outfits and
+                affiliate-ready fits.
               </p>
               <ul className="mt-3 space-y-1 text-xs text-slate-100">
                 <li>• Unlimited Cloth Plaza runs</li>
@@ -76,4 +77,17 @@ export default function PricingPage() {
               </p>
               <ul className="mt-3 space-y-1 text-xs text-slate-300">
                 <li>• Team usage</li>
-                <li>• Export-ready shot lists<
+                <li>• Export-ready shot lists</li>
+                <li>• Priority Plaza features</li>
+                <li>• Custom affiliate integrations</li>
+              </ul>
+            </div>
+            <button className="mt-4 w-full rounded-xl border border-slate-700 bg-slate-900/60 py-2 text-xs font-medium hover:bg-slate-800 transition">
+              Talk to us
+            </button>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
