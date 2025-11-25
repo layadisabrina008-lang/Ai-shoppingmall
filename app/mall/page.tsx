@@ -1,6 +1,8 @@
-'use client';
-import OutfitGenerator from "@/components/cloth/OutfitGenerator";
+"use client";
+
 import React, { useEffect, useState } from "react";
+import OutfitGenerator from "@/components/cloth/OutfitGenerator";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -33,15 +35,31 @@ import {
   Wand2,
 } from "lucide-react";
 
-
 /* ----------------------------- helpers & theme ----------------------------- */
 
 // analytics (swap console.log for your endpoint when ready)
 function track(event: string, props: Record<string, any> = {}) {
   const payload = { event, ts: Date.now(), ...props };
   // @ts-ignore
-  if (typeof window !== "undefined" && window.dataLayer) window.dataLayer.push(payload);
+  if (typeof window !== "undefined" && window.dataLayer) {
+    // @ts-ignore
+    window.dataLayer.push(payload);
+  }
   console.log("[analytics]", payload);
+}
+
+// currency formatter used in tiles
+function fmtCurrency(
+  value: number,
+  currency: string = "CHF",
+  locale: string = "de-CH"
+): string {
+  if (value == null || isNaN(Number(value))) return "";
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(Number(value));
 }
 
 // **Calmer** glass token
@@ -58,14 +76,38 @@ const VIBES = [
   "Classy",
   "Athleisure",
   "Soft girl",
-];
+] as const;
 
-// plazas (no gradient tints in this restrained version)
+// plazas
 const PLAZAS = [
-  { key: "cloth",  title: "Cloth Plaza",  desc: "Outfit recommender — selfie → undertone → vibe match.", icon: <Shirt className="h-5 w-5" />,  cta: "Style me" },
-  { key: "beauty", title: "Beauty Plaza", desc: "Skin & makeup recommender — tones, looks, products.",   icon: <Sparkles className="h-5 w-5" />, cta: "Glow up" },
-  { key: "food",   title: "Food Plaza",   desc: "Nearby meals in budget — spicy? vegan? call-to-order.", icon: <UtensilsCrossed className="h-5 w-5" />, cta: "Find meals" },
-  { key: "travel", title: "Travel Plaza", desc: "Budget + vibe → AI itinerary with rich booking cards.",  icon: <Plane className="h-5 w-5" />, cta: "Plan trip" },
+  {
+    key: "cloth",
+    title: "Cloth Plaza",
+    desc: "Outfit recommender — selfie → undertone → vibe match.",
+    icon: <Shirt className="h-5 w-5" />,
+    cta: "Style me",
+  },
+  {
+    key: "beauty",
+    title: "Beauty Plaza",
+    desc: "Skin & makeup recommender — tones, looks, products.",
+    icon: <Sparkles className="h-5 w-5" />,
+    cta: "Glow up",
+  },
+  {
+    key: "food",
+    title: "Food Plaza",
+    desc: "Nearby meals in budget — spicy? vegan? call-to-order.",
+    icon: <UtensilsCrossed className="h-5 w-5" />,
+    cta: "Find meals",
+  },
+  {
+    key: "travel",
+    title: "Travel Plaza",
+    desc: "Budget + vibe → AI itinerary with rich booking cards.",
+    icon: <Plane className="h-5 w-5" />,
+    cta: "Plan trip",
+  },
 ] as const;
 
 /* ------------------------------- PlazaTile -------------------------------- */
@@ -97,7 +139,8 @@ function PlazaTile({
     >
       <div className="p-6">
         <div className="mb-3 flex items-center gap-3">
-<div className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 border border-white/10">            {icon}
+          <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 border border-white/10">
+            {icon}
           </div>
           <h3 className="text-base font-semibold">{title}</h3>
         </div>
@@ -134,49 +177,51 @@ function PlazaTile({
 /* ---------------------------------- page ---------------------------------- */
 
 export default function MallShell() {
-  // 🔹 Your React state variables
-const [active, setActive] = useState<string>("home");
-const [openWizard, setOpenWizard] = useState(false);
-const [gender, setGender] = useState("female");
-const [vibe, setVibe] = useState<string>("Streetwear");
-const [tops, setTops] = useState("S");
-const [bottoms, setBottoms] = useState("S");
-const [skin, setSkin] = useState("normal");
-const [budget, setBudget] = useState<number>(150);
+  const [active, setActive] = useState<string>("home");
+  const [openWizard, setOpenWizard] = useState(false);
+  const [gender, setGender] = useState("female");
+  const [vibe, setVibe] = useState<string>("Streetwear");
+  const [tops, setTops] = useState("S");
+  const [bottoms, setBottoms] = useState("S");
+  const [skin, setSkin] = useState("normal");
+  const [budget, setBudget] = useState<number>(150);
 
-// 🔹 1. Track page view once
-useEffect(() => {
-  track("page_view", { page: "mall_shell" });
-}, []);
+  // Track page view once
+  useEffect(() => {
+    track("page_view", { page: "mall_shell" });
+  }, []);
 
-// 🔹 2. Load saved profile when page opens
-useEffect(() => {
-  try {
-    const raw = localStorage.getItem("mall_profile");
-    if (!raw) return;
-    const p = JSON.parse(raw);
-    if (p.gender) setGender(p.gender);
-    if (p.vibe) setVibe(p.vibe);
-    if (p.tops) setTops(p.tops);
-    if (p.bottoms) setBottoms(p.bottoms);
-    if (p.skin) setSkin(p.skin);
-    if (typeof p.budget === "number") setBudget(p.budget);
-  } catch {}
-}, []);
+  // Load saved profile when page opens
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("mall_profile");
+      if (!raw) return;
+      const p = JSON.parse(raw);
+      if (p.gender) setGender(p.gender);
+      if (p.vibe) setVibe(p.vibe);
+      if (p.tops) setTops(p.tops);
+      if (p.bottoms) setBottoms(p.bottoms);
+      if (p.skin) setSkin(p.skin);
+      if (typeof p.budget === "number") setBudget(p.budget);
+    } catch {
+      // ignore
+    }
+  }, []);
 
-// 🔹 3. Auto-save profile to localStorage when edited
-useEffect(() => {
-  const id = setTimeout(() => {
-    const payload = { gender, vibe, tops, bottoms, skin, budget };
-    localStorage.setItem("mall_profile", JSON.stringify(payload));
-  }, 200);
-  return () => clearTimeout(id);
-}, [gender, vibe, tops, bottoms, skin, budget]);
+  // Auto-save profile
+  useEffect(() => {
+    const id = setTimeout(() => {
+      const payload = { gender, vibe, tops, bottoms, skin, budget };
+      localStorage.setItem("mall_profile", JSON.stringify(payload));
+    }, 200);
+    return () => clearTimeout(id);
+  }, [gender, vibe, tops, bottoms, skin, budget]);
 
+  const activePlaza = PLAZAS.find((p) => p.key === active as (typeof PLAZAS)[number]["key"]);
 
   return (
     <div className="relative min-h-screen text-white">
-      {/* Minimal background (no neon, just a gentle radial) */}
+      {/* Background */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-24 -left-24 h-[32rem] w-[32rem] rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05),transparent_60%)]" />
       </div>
@@ -191,11 +236,19 @@ useEffect(() => {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="secondary" className="bg-white/8 hover:bg-white/12 border border-white/10" onClick={() => setOpenWizard(true)}>
+            <Button
+              variant="secondary"
+              className="bg-white/8 hover:bg-white/12 border border-white/10"
+              onClick={() => setOpenWizard(true)}
+            >
               <User className="mr-2 h-4 w-4" />
               Profile Wizard
             </Button>
-            <Button variant="secondary" className="bg-white/8 hover:bg-white/12 border border-white/10" onClick={() => track("click", { target: "settings" })}>
+            <Button
+              variant="secondary"
+              className="bg-white/8 hover:bg-white/12 border border-white/10"
+              onClick={() => track("click", { target: "settings" })}
+            >
               <Settings className="mr-2 h-4 w-4" />
               Settings
             </Button>
@@ -204,100 +257,102 @@ useEffect(() => {
         <div className="mx-auto max-w-7xl border-b border-white/10" />
       </header>
 
-{/* Main */}
-<main className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-6 py-8 lg:grid-cols-4">
-  {/* Sidebar */}
-  <aside className={`rounded-2xl p-4 ${glass}`}>
-    <nav className="space-y-1">
-      <SideItem
-        icon={<Home className="h-4 w-4" />}
-        label="Home"
-        active={active === "home"}
-        onClick={() => setActive("home")}
-      />
-      {PLAZAS.map((p) => (
-        <SideItem
-          key={p.key}
-          icon={p.icon}
-          label={p.title}
-          active={active === p.key}
-          onClick={() => setActive(p.key)}
-        />
-      ))}
-    </nav>
-    <Separator className="my-4" />
-    <p className="text-xs text-white/70">
-      Tip: complete your{" "}
-      <button className="underline" onClick={() => setOpenWizard(true)}>
-        profile wizard
-      </button>{" "}
-      to personalize all plazas.
-    </p>
-  </aside>
-
-  {/* Content */}
-  <section className="space-y-6 lg:col-span-3">
-    {/* Home grid (tiles) */}
-    {active === "home" && (
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {PLAZAS.map((p) => (
-          <PlazaTile
-            key={p.key}
-            icon={p.icon}
-            title={p.title}
-            desc={p.desc}
-            vibe={vibe}
-            gender={gender}
-            budget={fmtCurrency(budget, "CHF")}
-            primaryLabel={p.cta}
-            onPrimary={() => {
-              setActive(p.key);
-              track("click", { target: `enter_${p.key}` });
-            }}
-            onAdjust={() => setOpenWizard(true)}
-          />
-        ))}
-      </div>
-    )}
-
-    {/* Active plaza */}
-{active !== "home" && (
-  <Card className={`rounded-2xl ${glass}`}>
-        <div className="p-6 space-y-4">
-          <div className="mb-2 flex items-center gap-3">
-            {PLAZAS.find((p) => p.key === active)?.icon}
-            <h3 className="text-base font-semibold">
-              {PLAZAS.find((p) => p.key === active)?.title}
-            </h3>
-          </div>
-
-          {active === "cloth" ? (
-            <>
-              {/* Optional quick profile strip */}
-              <div className="flex flex-wrap gap-2 text-xs">
-                <Badge className="bg-white/10">Vibe: {vibe}</Badge>
-                <Badge className="bg-white/10">Gender: {gender}</Badge>
-                <Badge className="bg-white/10">Tops: {tops}</Badge>
-                <Badge className="bg-white/10">Bottoms: {bottoms}</Badge>
-                <Badge className="bg-white/10">Skin: {skin}</Badge>
-                <Badge className="bg-white/10">Budget: CHF {budget}</Badge>
-              </div>
-
-              <OutfitGenerator
-                defaultGender={gender as "female" | "male"}
-                defaultVibe={vibe}
+      {/* Main */}
+      <main className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-6 py-8 lg:grid-cols-4">
+        {/* Sidebar */}
+        <aside className={`rounded-2xl p-4 ${glass}`}>
+          <nav className="space-y-1">
+            <SideItem
+              icon={<Home className="h-4 w-4" />}
+              label="Home"
+              active={active === "home"}
+              onClick={() => setActive("home")}
+            />
+            {PLAZAS.map((p) => (
+              <SideItem
+                key={p.key}
+                icon={p.icon}
+                label={p.title}
+                active={active === p.key}
+                onClick={() => setActive(p.key)}
               />
-            </>
-          ) : (
-            <div className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/70">
-              Plaza content placeholder. Hook endpoints here.
+            ))}
+          </nav>
+          <Separator className="my-4" />
+          <p className="text-xs text-white/70">
+            Tip: complete your{" "}
+            <button className="underline" onClick={() => setOpenWizard(true)}>
+              profile wizard
+            </button>{" "}
+            to personalize all plazas.
+          </p>
+        </aside>
+
+        {/* Content */}
+        <section className="space-y-6 lg:col-span-3">
+          {/* Home grid */}
+          {active === "home" && (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              {PLAZAS.map((p) => (
+                <PlazaTile
+                  key={p.key}
+                  icon={p.icon}
+                  title={p.title}
+                  desc={p.desc}
+                  vibe={vibe}
+                  gender={gender}
+                  budget={fmtCurrency(budget, "CHF")}
+                  primaryLabel={p.cta}
+                  onPrimary={() => {
+                    setActive(p.key);
+                    track("click", { target: `enter_${p.key}` });
+                  }}
+                  onAdjust={() => setOpenWizard(true)}
+                />
+              ))}
             </div>
           )}
-        </div>
-      </Card>
-    )}
-  </section>
-</main>
+
+          {/* Active plaza */}
+          {active !== "home" && (
+            <Card className={`rounded-2xl ${glass}`}>
+              <div className="p-6 space-y-4">
+                <div className="mb-2 flex items-center gap-3">
+                  {activePlaza?.icon}
+                  <h3 className="text-base font-semibold">
+                    {activePlaza?.title ?? "Plaza"}
+                  </h3>
+                </div>
+
+                {active === "cloth" ? (
+                  <>
+                    {/* Profile strip */}
+                    <div className="flex flex-wrap gap-2 text-xs">
+                      <Badge className="bg-white/10">Vibe: {vibe}</Badge>
+                      <Badge className="bg-white/10">Gender: {gender}</Badge>
+                      <Badge className="bg-white/10">Tops: {tops}</Badge>
+                      <Badge className="bg-white/10">Bottoms: {bottoms}</Badge>
+                      <Badge className="bg-white/10">Skin: {skin}</Badge>
+                      <Badge className="bg-white/10">
+                        Budget: {fmtCurrency(budget, "CHF")}
+                      </Badge>
+                    </div>
+
+                    <OutfitGenerator
+                      defaultGender={gender as "female" | "male"}
+                      defaultVibe={vibe}
+                    />
+                  </>
+                ) : (
+                  <div className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/70">
+                    Plaza content placeholder. Hook your API endpoints here.
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+        </section>
+      </main>
 
       {/* Profile Wizard */}
       <Drawer open={openWizard} onOpenChange={setOpenWizard}>
@@ -387,36 +442,60 @@ useEffect(() => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {["normal", "oily", "dry", "combination", "sensitive"].map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
-                  ))}
+                  {["normal", "oily", "dry", "combination", "sensitive"].map(
+                    (s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    )
+                  )}
                 </SelectContent>
               </Select>
             </div>
 
             {/* Budget */}
             <div>
-              <Label className="text-white/90">Monthly fashion/beauty budget (CHF)</Label>
+              <Label className="text-white/90">
+                Monthly fashion/beauty budget (CHF)
+              </Label>
               <div className="mt-3">
-                <Slider value={[budget]} min={50} max={1000} step={10} onValueChange={(v) => setBudget(v[0])} />
-                <div className="mt-2 text-sm text-white/80">CHF {budget}</div>
+                <Slider
+                  value={[budget]}
+                  min={50}
+                  max={1000}
+                  step={10}
+                  onValueChange={(v) => setBudget(v[0])}
+                />
+                <div className="mt-2 text-sm text-white/80">
+                  {fmtCurrency(budget, "CHF")}
+                </div>
               </div>
             </div>
           </div>
           <DrawerFooter className="px-6 pb-6">
             <div className="flex items-center justify-between">
               <div className="text-xs text-white/70">
-                Your profile personalizes all plazas and elevates comfortable living.
+                Your profile personalizes all plazas and elevates comfortable
+                living.
               </div>
               <div className="flex gap-2">
-                <Button variant="secondary" className="bg-white/10 hover:bg-white/15 border border-white/10" onClick={() => setOpenWizard(false)}>
+                <Button
+                  variant="secondary"
+                  className="bg-white/10 hover:bg-white/15 border border-white/10"
+                  onClick={() => setOpenWizard(false)}
+                >
                   Cancel
                 </Button>
                 <Button
                   onClick={() => {
-                    track("profile_save", { gender, vibe, tops, bottoms, skin, budget });
+                    track("profile_save", {
+                      gender,
+                      vibe,
+                      tops,
+                      bottoms,
+                      skin,
+                      budget,
+                    });
                     setOpenWizard(false);
                   }}
                 >
@@ -466,4 +545,5 @@ function SideItem({
     </button>
   );
 }
+
 

@@ -10,24 +10,20 @@ import { generateOutfits } from "@/lib/outfit/rules";
 import { Copy, ShoppingBag, RefreshCcw } from "lucide-react";
 
 function fmtCHF(n: number) {
-  try {
-    return new Intl.NumberFormat(navigator.language || "de-CH", { style: "currency", currency: "CHF", maximumFractionDigits: 0 }).format(n);
-  } catch { return `CHF ${n}`; }
+  try { return new Intl.NumberFormat(navigator.language || "de-CH", { style: "currency", currency: "CHF", maximumFractionDigits: 0 }).format(n); }
+  catch { return `CHF ${n}`; }
 }
 
 export default function OutfitGenerator({
   defaultGender = "female",
   defaultVibe = "Streetwear",
-}: {
-  defaultGender?: "female" | "male";
-  defaultVibe?: string;
-}) {
+}: { defaultGender?: "female" | "male"; defaultVibe?: string; }) {
   const [undertone, setUndertone] = useState<Undertone>("neutral");
   const [shape, setShape] = useState<BodyShape>("rectangle");
   const [vibe, setVibe] = useState<string>(defaultVibe);
   const [gender, setGender] = useState<"female" | "male">(defaultGender);
   const [budgetCap, setBudgetCap] = useState<number | undefined>(undefined);
-  const [version, setVersion] = useState(0); // trigger regen deterministically
+  const [version, setVersion] = useState(0); // deterministic re-run trigger
 
   const outfits = useMemo(() => {
     return generateOutfits({ gender, undertone, bodyShape: shape, vibe, budgetCap }, seedProducts, 3);
@@ -39,13 +35,11 @@ export default function OutfitGenerator({
       <Card className="rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur p-5">
         <div className="mb-2 text-sm text-white/80">Prompt</div>
         <p className="text-white/90">Selfie → undertone → outfit.</p>
+
         <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-5">
           <Select value={gender} onValueChange={(v) => setGender(v as any)}>
             <SelectTrigger><SelectValue placeholder="Gender" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="female">Female</SelectItem>
-              <SelectItem value="male">Male</SelectItem>
-            </SelectContent>
+            <SelectContent><SelectItem value="female">Female</SelectItem><SelectItem value="male">Male</SelectItem></SelectContent>
           </Select>
 
           <Select value={undertone} onValueChange={(v) => setUndertone(v as Undertone)}>
@@ -60,18 +54,14 @@ export default function OutfitGenerator({
           <Select value={shape} onValueChange={(v) => setShape(v as any)}>
             <SelectTrigger><SelectValue placeholder="Body shape" /></SelectTrigger>
             <SelectContent>
-              {["hourglass","pear","apple","rectangle","petite","tall"].map(s => (
-                <SelectItem key={s} value={s}>{s}</SelectItem>
-              ))}
+              {["hourglass","pear","apple","rectangle","petite","tall"].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
             </SelectContent>
           </Select>
 
           <Select value={vibe} onValueChange={(v) => setVibe(v)}>
             <SelectTrigger><SelectValue placeholder="Vibe" /></SelectTrigger>
             <SelectContent>
-              {["Streetwear","Y2K","Grunge","Minimal","Clean","Classy","Soft girl","Athleisure"].map(v => (
-                <SelectItem key={v} value={v}>{v}</SelectItem>
-              ))}
+              {["Streetwear","Y2K","Grunge","Minimal","Clean","Classy","Soft girl","Athleisure"].map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
             </SelectContent>
           </Select>
 
@@ -145,3 +135,4 @@ function ItemRow({ label, value, price, link }: { label: string; value: string; 
     </div>
   );
 }
+

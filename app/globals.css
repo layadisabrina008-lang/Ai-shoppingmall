@@ -1,60 +1,31 @@
-@import "tailwindcss";
-@plugin "tailwindcss-animate";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* ---- Theme tokens for shadcn (Tailwind v4-ready) ---- */
-:root {
-  --background: 12 12% 6%;         /* deep charcoal */
-  --foreground: 0 0% 100%;
 
-  --card: 226 14% 10%;
-  --card-foreground: 0 0% 98%;
-
-  --popover: 226 14% 10%;
-  --popover-foreground: 0 0% 98%;
-
-  --primary: 45 68% 54%;           /* GOLD */
-  --primary-foreground: 0 0% 10%;
-
-  --secondary: 220 10% 18%;
-  --secondary-foreground: 0 0% 100%;
-
-  --muted: 220 10% 22%;
-  --muted-foreground: 220 10% 75%;
-
-  --accent: 45 68% 54%;
-  --accent-foreground: 0 0% 10%;
-
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 98%;
-
-  --border: 220 12% 22%;
-  --input: 220 12% 22%;
-  --ring: 45 68% 54%;
-
-  --radius: 1rem;
-}
-
-/* optional dark selector if you want light mode later */
-.dark {
-  --background: 12 12% 6%;
-  --foreground: 0 0% 100%;
-}
-
-* { border-color: hsl(var(--border)); }
+:root { color-scheme: dark; }
 html, body { height: 100%; }
+body { @apply bg-onyx text-ivory antialiased; }
 
-body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+
+/* Gold focus ring */
+.focus-gold:focus { outline: 2px solid #b48a56; outline-offset: 2px; }
+
+
+/* Glass card surface */
+.card-glass { @apply bg-white/5 border border-white/10 backdrop-blur-md shadow-glass; }
+
+
+/* Subtle gold divider */
+.hr-gold { @apply border-t border-white/10; }
+
+
+/* Shimmer for CTAs */
+.btn-gold { @apply rounded-2xl font-semibold px-5 py-2 transition; background-image: linear-gradient(90deg,#b48a56,#d4b37c); color:#0b0b0e; box-shadow: 0 0 20px rgba(180,138,86,.35);}
+.btn-gold:hover { box-shadow: 0 0 28px rgba(180,138,86,.55); transform: translateY(-1px); }
+
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+* { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
 }
-
-/* utility: glass */
-.glass {
-  background: color-mix(in oklab, hsl(var(--foreground)) 8%, transparent);
-  backdrop-filter: blur(18px);
-  border: 1px solid color-mix(in oklab, hsl(var(--foreground)) 14%, transparent);
-  box-shadow: 0 10px 40px rgba(0,0,0,.25);
-}
-

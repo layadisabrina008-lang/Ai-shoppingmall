@@ -1,28 +1,64 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import * as SliderPrimitive from "@radix-ui/react-slider"
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
-import { cn } from "@/lib/utils"
+type SliderProps = Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  "type" | "value" | "defaultValue" | "onChange"
+> & {
+  value?: number[];
+  defaultValue?: number[];
+  onValueChange?: (value: number[]) => void;
+};
 
-const Slider = React.forwardRef<
-  React.ElementRef<typeof SliderPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
->(({ className, ...props }, ref) => (
-  <SliderPrimitive.Root
-    ref={ref}
-    className={cn(
-      "relative flex w-full touch-none select-none items-center",
-      className
-    )}
-    {...props}
-  >
-    <SliderPrimitive.Track className="relative h-1.5 w-full grow overflow-hidden rounded-full bg-primary/20">
-      <SliderPrimitive.Range className="absolute h-full bg-primary" />
-    </SliderPrimitive.Track>
-    <SliderPrimitive.Thumb className="block h-4 w-4 rounded-full border border-primary/50 bg-background shadow transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50" />
-  </SliderPrimitive.Root>
-))
-Slider.displayName = SliderPrimitive.Root.displayName
+/**
+ * Simple slider replacement for the shadcn/Radix slider.
+ * API: value/defaultValue as [number], onValueChange(value: number[])
+ */
+const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
+  (
+    {
+      className,
+      value,
+      defaultValue,
+      onValueChange,
+      min = 0,
+      max = 100,
+      step = 1,
+      ...props
+    },
+    ref
+  ) => {
+    const [internal, setInternal] = React.useState<number>(
+      (defaultValue && defaultValue[0]) ?? Number(min)
+    );
 
-export { Slider }
+    const current = value && value.length ? value[0] : internal;
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const v = Number(e.target.value);
+      setInternal(v);
+      onValueChange?.([v]);
+    };
+
+    return (
+      <input
+        ref={ref}
+        type="range"
+        className={cn("w-full cursor-pointer", className)}
+        min={min}
+        max={max}
+        step={step}
+        value={current}
+        onChange={handleChange}
+        {...props}
+      />
+    );
+  }
+);
+
+Slider.displayName = "Slider";
+
+export { Slider };
+
