@@ -26,7 +26,6 @@ export type BodyShape =
   | "tall";
 
 type Gender = "female" | "male";
-
 type ProductCategory = "top" | "bottom" | "shoes" | "accessory";
 
 interface Product {
@@ -234,27 +233,48 @@ function generateOutfits(
   const outfits: Outfit[] = [];
 
   for (let i = 0; i < count; i++) {
-    const top = tops.length ? pickRandom(tops) : pickRandom(products.filter(p => p.category === "top" && p.gender === gender));
-    const bottom = bottoms.length ? pickRandom(bottoms) : pickRandom(products.filter(p => p.category === "bottom" && p.gender === gender));
-    const shoe = shoes.length ? pickRandom(shoes) : pickRandom(products.filter(p => p.category === "shoes" && p.gender === gender));
-    const accessory = accessories.length ? pickRandom(accessories) : pickRandom(products.filter(p => p.category === "accessory" && p.gender === gender));
+    const top =
+      tops.length > 0
+        ? pickRandom(tops)
+        : pickRandom(products.filter((p) => p.category === "top" && p.gender === gender));
+
+    const bottom =
+      bottoms.length > 0
+        ? pickRandom(bottoms)
+        : pickRandom(products.filter((p) => p.category === "bottom" && p.gender === gender));
+
+    const shoe =
+      shoes.length > 0
+        ? pickRandom(shoes)
+        : pickRandom(products.filter((p) => p.category === "shoes" && p.gender === gender));
+
+    const accessory =
+      accessories.length > 0
+        ? pickRandom(accessories)
+        : pickRandom(products.filter((p) => p.category === "accessory" && p.gender === gender));
 
     const total = top.price + bottom.price + shoe.price + accessory.price;
 
     if (budgetCap && total > budgetCap) {
-      // simple budget filtering: skip this one and try again
+      // skip this combo if above budget
       continue;
     }
 
     outfits.push({ top, bottom, shoes: shoe, accessory, total });
   }
 
-  // if we couldn't satisfy budgetCap, just return something
+  // if no outfits under budget, just return something
   if (!outfits.length) {
-    const top = pickRandom(products.filter(p => p.category === "top" && p.gender === gender));
-    const bottom = pickRandom(products.filter(p => p.category === "bottom" && p.gender === gender));
-    const shoe = pickRandom(products.filter(p => p.category === "shoes" && p.gender === gender));
-    const accessory = pickRandom(products.filter(p => p.category === "accessory" && p.gender === gender));
+    const top = pickRandom(products.filter((p) => p.category === "top" && p.gender === gender));
+    const bottom = pickRandom(
+      products.filter((p) => p.category === "bottom" && p.gender === gender)
+    );
+    const shoe = pickRandom(
+      products.filter((p) => p.category === "shoes" && p.gender === gender)
+    );
+    const accessory = pickRandom(
+      products.filter((p) => p.category === "accessory" && p.gender === gender)
+    );
     outfits.push({
       top,
       bottom,
@@ -271,11 +291,14 @@ function generateOutfits(
 
 function fmtCHF(n: number) {
   try {
-    return new Intl.NumberFormat(navigator.language || "de-CH", {
-      style: "currency",
-      currency: "CHF",
-      maximumFractionDigits: 0,
-    }).format(n);
+    return new Intl.NumberFormat(
+      typeof navigator !== "undefined" ? navigator.language : "de-CH",
+      {
+        style: "currency",
+        currency: "CHF",
+        maximumFractionDigits: 0,
+      }
+    ).format(n);
   } catch {
     return `CHF ${n}`;
   }
@@ -339,7 +362,10 @@ export default function OutfitGenerator({
             </SelectContent>
           </Select>
 
-          <Select value={shape} onValueChange={(v) => setShape(v as BodyShape)}>
+          <Select
+            value={shape}
+            onValueChange={(v) => setShape(v as BodyShape)}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Body shape" />
             </SelectTrigger>
@@ -368,9 +394,9 @@ export default function OutfitGenerator({
                 "Classy",
                 "Soft girl",
                 "Athleisure",
-              ].map((v) => (
-                <SelectItem key={v} value={v}>
-                  {v}
+              ].map((vibeOption) => (
+                <SelectItem key={vibeOption} value={vibeOption}>
+                  {vibeOption}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -456,11 +482,7 @@ export default function OutfitGenerator({
                 <Copy className="mr-2 h-4 w-4" /> Copy fit
               </Button>
               <Button asChild>
-                <a
-                  href={o.top.affiliateUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
+                <a href={o.top.affiliateUrl} target="_blank" rel="noreferrer">
                   <ShoppingBag className="mr-2 h-4 w-4" /> Buy (affiliate)
                 </a>
               </Button>
