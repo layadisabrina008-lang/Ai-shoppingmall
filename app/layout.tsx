@@ -32,6 +32,25 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${playfair.variable} scroll-smooth`}
     >
+      <head>
+        {/* Travelpayouts verification */}
+        <script
+          data-noptimize="1"
+          data-cfasync="false"
+          data-wpfc-render="false"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function () {
+                var script = document.createElement("script");
+                script.async = 1;
+                script.src = 'https://tpembars.com/NDc3MDU4.js?t=477058';
+                document.head.appendChild(script);
+              })();
+            `,
+          }}
+        />
+      </head>
+
       <body className="min-h-dvh bg-aurum bg-[length:200%_200%] text-white">
         <Navbar />
         <main className="container mx-auto px-4 py-10">{children}</main>
@@ -40,4 +59,3 @@ export default function RootLayout({
     </html>
   );
 }
-
