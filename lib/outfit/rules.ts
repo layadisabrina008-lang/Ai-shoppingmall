@@ -1,12 +1,11 @@
-// lib/outfit/rules.ts
 import type { Undertone, BodyShape, Product } from "./seed";
 
 export type OutfitInput = {
   gender: "female" | "male";
   undertone: Undertone;
   bodyShape: BodyShape;
-  vibe: string;        // e.g. "Streetwear"
-  budgetCap?: number;  // optional CHF max
+  vibe: string;               // e.g., "Streetwear"
+  budgetCap?: number;         // optional
 };
 
 export type Outfit = {
@@ -17,138 +16,57 @@ export type Outfit = {
   total: number;
 };
 
-/* -------------------------------------------------------------------------- */
-/*                                 SCORING                                    */
-/* -------------------------------------------------------------------------- */
-
-function scoreProduct(product: Product, input: OutfitInput): number {
+function score(product: Product, input: OutfitInput): number {
   let s = 0;
-
-  // gender match
-  if (product.gender === input.gender) s += 4;
-  else if (product.gender === "unisex") s += 2;
-
-  // vibe match
-  if (product.vibes?.includes(input.vibe)) s += 4;
-
-  // undertone match
-  if (product.undertones?.includes(input.undertone)) s += 3;
-
-  // body shape match (if present)
-  if (!product.bodyShapes || product.bodyShapes.includes(input.bodyShape)) {
-    s += 2;
-  }
-
+  if (product.gender === input.gender || product.gender === "unisex") s += 3;
+  if (product.vibes.includes(input.vibe)) s += 3;
+  if (product.undertones.includes(input.undertone)) s += 2;
+  if (!product.bodyShapes || product.bodyShapes.includes(input.bodyShape)) s += 1;
   return s;
 }
-
-function sortByScore(products: Product[], input: OutfitInput): Product[] {
-  return [...products].sort((a, b) => scoreProduct(b, input) - scoreProduct(a, input));
-}
-
-/* -------------------------------------------------------------------------- */
-/*                          CORE OUTFIT GENERATION                            */
-/* -------------------------------------------------------------------------- */
 
 export function generateOutfits(
   input: OutfitInput,
   products: Product[],
   count = 3
 ): Outfit[] {
-  // group by category
-  const tops = sortByScore(products.filter(p => p.category === "top"), input);
-  const bottoms = sortByScore(products.filter(p => p.category === "bottom"), input);
-  const shoes = sortByScore(products.filter(p => p.category === "shoes"), input);
-  const accs = sortByScore(products.filter(p => p.category === "accessory"), input);
-
-  if (!tops.length || !bottoms.length || !shoes.length || !accs.length) {
-    return [];
-  }
+  // split by category
+  const tops = products.filter(p => p.category === "top").sort((a,b)=>score(b,input)-score(a,input));
+  const bottoms = products.filter(p => p.category === "bottom").sort((a,b)=>score(b,input)-score(a,input));
+  const shoes = products.filter(p => p.category === "shoes").sort((a,b)=>score(b,input)-score(a,input));
+  const accs = products.filter(p => p.category === "accessory").sort((a,b)=>score(b,input)-score(a,input));
 
   const outfits: Outfit[] = [];
-  const max = Math.min(
-    count,
-    tops.length,
-    bottoms.length,
-    shoes.length,
-    accs.length
-  );
+  const max = Math.min(count, Math.min(tops.length, bottoms.length, shoes.length, accs.length));
 
   for (let i = 0; i < max; i++) {
-    // slightly rotate indices for variety
+    // deterministic round-robin so sets differ
     const t = tops[i % tops.length];
     const b = bottoms[(i + 1) % bottoms.length];
     const s = shoes[(i + 2) % shoes.length];
-    const a = accs[(i + 3) % accs.length];
-
-    let total = t.price + b.price + s.price + a.price;
-
-    // If budgetCap given & we exceed it, try to swap for cheaper shoes/accs
+    const a = accs[(i + 1) % accs.length];
+    const total = t.price + b.price + s.price + a.price;
     if (input.budgetCap && total > input.budgetCap) {
-      const cheaperShoes = [...shoes]
-        .sort((p1, p2) => p1.price - p2.price)
-        .find(x => x.price <= s.price);
-
-      const cheaperAcc = [...accs]
-        .sort((p1, p2) => p1.price - p2.price)
-        .find(x => x.price <= a.price);
-
-      const finalShoes = cheaperShoes ?? s;
-      const finalAcc = cheaperAcc ?? a;
-
-      const newTotal = t.price + b.price + finalShoes.price + finalAcc.price;
-
-      if (!input.budgetCap || newTotal <= input.budgetCap) {
-        outfits.push({
-          top: t,
-          bottom: b,
-          shoes: finalShoes,
-          accessory: finalAcc,
-          total: newTotal,
-        });
+      // try swapping shoes or accessory for cheaper option if available
+      const cheaperShoes = shoes.slice().reverse().find(x => x.price <= s.price);
+      const cheaperAcc = accs.slice().reverse().find(x => x.price <= a.price);
+      const candTotal = t.price + b.price + (cheaperShoes?.price ?? s.price) + (cheaperAcc?.price ?? a.price);
+      if (candTotal <= (input.budgetCap ?? Infinity)) {
+        outfits.push({ top: t, bottom: b, shoes: cheaperShoes ?? s, accessory: cheaperAcc ?? a, total: candTotal });
         continue;
       }
     }
-
     outfits.push({ top: t, bottom: b, shoes: s, accessory: a, total });
   }
-
-  // If nothing fit the budgetCap at all, still return up to count best combos
-  if (!outfits.length) {
-    for (let i = 0; i < max; i++) {
-      const t = tops[i % tops.length];
-      const b = bottoms[(i + 1) % bottoms.length];
-      const s = shoes[(i + 2) % shoes.length];
-      const a = accs[(i + 3) % accs.length];
-      const total = t.price + b.price + s.price + a.price;
-      outfits.push({ top: t, bottom: b, shoes: s, accessory: a, total });
-    }
-  }
-
   return outfits;
 }
-
-/* -------------------------------------------------------------------------- */
-/*                     DEBUG / API COMPAT: buildOutfits                       */
-/* -------------------------------------------------------------------------- */
-
+// 👇 ADD THIS at the end of lib/outfit/rules.ts
 export function buildOutfits(
   input: OutfitInput,
   products: Product[],
   count = 3
 ) {
+  // wrap generateOutfits so the debug API can use the old name
   const outfits = generateOutfits(input, products, count);
-
-  return {
-    outfits,
-    meta: {
-      requestedCount: count,
-      returnedCount: outfits.length,
-      budgetCap: input.budgetCap ?? null,
-      vibe: input.vibe,
-      gender: input.gender,
-      undertone: input.undertone,
-      bodyShape: input.bodyShape,
-    },
-  };
+  return { outfits };
 }
