@@ -56,6 +56,15 @@ export default function Cloth() {
   const [data, setData] = useState<OutfitResponse | null>(null)
   const [undertone, setUndertone] = useState<string | undefined>()
 
+  const normalizeUndertone = (
+  raw: string | undefined
+): StyleInput["undertone"] | undefined => {
+  if (raw === "cool" || raw === "neutral" || raw === "warm") {
+    return raw;
+  }
+  return undefined;
+};
+
   const run = async (partial: StyleInput) => {
     setLoading(true)
     setError(null)
@@ -72,14 +81,16 @@ export default function Cloth() {
           body: JSON.stringify({ image_url: selfieUrl }),
         })
 
-        const uJson = await json<{
-          undertone?: string
-          face_shape?: string
-          body_shape?: string
-          skin_tone?: string
-          eye_color?: string
-          hair_color?: string
-        }>(uRes)
+       const uJson = await json<any>(u);
+payload = {
+  ...payload,
+  undertone: normalizeUndertone(uJson.undertone) ?? payload.undertone,
+  faceShape: uJson.face_shape ?? payload.faceShape,
+  bodyShape: uJson.body_shape ?? payload.bodyShape,
+  skinTone: uJson.skin_tone ?? payload.skinTone,
+  eyeColor: uJson.eye_color ?? payload.eyeColor,
+  hairColor: uJson.hair_color ?? payload.hairColor,
+};
 
         payload = {
           ...payload,
