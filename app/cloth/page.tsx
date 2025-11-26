@@ -72,38 +72,48 @@ export default function Cloth() {
 
     let payload: StyleInput = { ...partial, selfieUrl }
 
-    try {
-      // 🔍 1) Detect undertone if not provided
-      if (selfieUrl && !payload.undertone) {
-        const uRes = await fetch(API('/vision/undertone'), {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ image_url: selfieUrl }),
-        })
+  try {
+  // 🔍 1) Detect undertone if not provided
+  if (selfieUrl && !payload.undertone) {
+    const uRes = await fetch(API('/vision/undertone'), {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ image_url: selfieUrl }),
+    });
 
-       const uJson = await json<any>(u);
-payload = {
-  ...payload,
-  undertone: normalizeUndertone(uJson.undertone) ?? payload.undertone,
-  faceShape: uJson.face_shape ?? payload.faceShape,
-  bodyShape: uJson.body_shape ?? payload.bodyShape,
-  skinTone: uJson.skin_tone ?? payload.skinTone,
-  eyeColor: uJson.eye_color ?? payload.eyeColor,
-  hairColor: uJson.hair_color ?? payload.hairColor,
-};
+    const uJson = await json<any>(uRes);
 
-        payload = {
-          ...payload,
-          undertone: uJson.undertone ?? payload.undertone,
-          faceShape: uJson.face_shape ?? payload.faceShape,
-          bodyShape: uJson.body_shape ?? payload.bodyShape,
-          skinTone: uJson.skin_tone ?? payload.skinTone,
-          eyeColor: uJson.eye_color ?? payload.eyeColor,
-          hairColor: uJson.hair_color ?? payload.hairColor,
-        }
+    payload = {
+      ...payload,
+      undertone: normalizeUndertone(uJson.undertone) ?? payload.undertone,
+      faceShape: uJson.face_shape ?? payload.faceShape,
+      bodyShape: uJson.body_shape ?? payload.bodyShape,
+      skinTone: uJson.skin_tone ?? payload.skinTone,
+      eyeColor: uJson.eye_color ?? payload.eyeColor,
+      hairColor: uJson.hair_color ?? payload.hairColor,
+    };
 
-        setUndertone(payload.undertone)
-      }
+    setUndertone(payload.undertone);
+  }
+
+  // 🧠 2) get outfits
+  const res = await fetch(API('/style/outfit'), {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const out = await json<OutfitResponse>(res);
+  setData(out);
+  setUndertone(payload.undertone);
+} catch (e: any) {
+  console.warn('Falling back:', e?.message);
+  const out = fallbackMatch(payload);
+  setData(out);
+  setError('Using offline matcher while AI service is unavailable.');
+  setUndertone(payload.undertone);
+} finally {
+  setLoading(false);
+}
 
       // 🧠 2) Get outfits from AI service
       const res = await fetch(API('/style/outfit'), {
